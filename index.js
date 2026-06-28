@@ -107,7 +107,7 @@ const personalAgents = [
 ];
 
 const crawlers = require('crawler-user-agents');
-const PROTECTION_ENABLED = false;
+const PROTECTION_ENABLED = true;
 const apiPatterns = ['/api/'];
 
 app.addHook('onRequest', async (request, reply) => {
