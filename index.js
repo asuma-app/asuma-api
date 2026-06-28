@@ -40,62 +40,6 @@ const app = Fastify({
 
 let PORT = process.env.PORT || 3000;
 
-const formatDate2 = (timestamp) => {
-  if (!timestamp) return '-';
-  return new Date(timestamp).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
-
-function calculateLevelProgress(exp, nextLevelExp) {
-  if (!nextLevelExp || nextLevelExp === 0) return 0;
-  return Math.min(100, Math.floor((exp / nextLevelExp) * 100));
-}
-
-function formatNumber(num) {
-  if (!num && num !== 0) return '0';
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'Jt';
-  if (num >= 1000) return (num / 1000).toFixed(1) + 'Rb';
-  return num.toString();
-}
-
-function formatDate(timestamp) {
-  if (!timestamp) return 'Tidak diketahui';
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now - date;
-  const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const diffHours = Math.floor(diff / (1000 * 60 * 60));
-  const diffMinutes = Math.floor(diff / (1000 * 60));
-  if (diffMinutes < 1) return 'Baru saja';
-  if (diffMinutes < 60) return `${diffMinutes} menit lalu`;
-  if (diffHours < 24) return `${diffHours} jam lalu`;
-  if (diffDays < 7) return `${diffDays} hari lalu`;
-  return date.toLocaleDateString('id-ID', { 
-    day: 'numeric', 
-    month: 'long', 
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-function formatDuration(ms) {
-  if (!ms) return '0 menit';
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  if (days > 0) return `${days} hari ${hours % 24} jam`;
-  if (hours > 0) return `${hours} jam ${minutes % 60} menit`;
-  if (minutes > 0) return `${minutes} menit`;
-  return `${seconds} detik`;
-}
-
 app.addHook('onResponse', async (request, reply) => {
   const duration = reply.elapsedTime;
   const clientIp = request.headers['x-real-ip'] || 
@@ -164,7 +108,7 @@ const personalAgents = [
 
 const crawlers = require('crawler-user-agents');
 const PROTECTION_ENABLED = true;
-const apiPatterns = ['/api/', '/v1/', '/v2/', '/v3/', '/docs/', '/docs', '/'];
+const apiPatterns = ['/api/'];
 
 app.addHook('onRequest', async (request, reply) => {
   if (!PROTECTION_ENABLED) return;
@@ -189,7 +133,7 @@ app.addHook('onRequest', async (request, reply) => {
       return false;
     }
   });
-  reply.code(403).send('Forbidden');
+  reply.code(403).send({ status: false, error: 'Forbidden' });
 });
 
 app.addHook('onRequest', async (request, reply) => {
@@ -199,7 +143,7 @@ app.addHook('onRequest', async (request, reply) => {
 });
 
 app.addHook('onRequest', async (request, reply) => {
-  const protectedPrefixes = ['/api/', '/ai/', '/random/', '/maker/'];
+  const protectedPrefixes = ['/api/'];
   if (protectedPrefixes.some(p => request.url.startsWith(p))) {
     const middleware = createApiKeyMiddleware();
     await new Promise((resolve, reject) => {
@@ -229,18 +173,17 @@ await app.register(rateLimit, {
   timeWindow: 60 * 1000,
   max: (request, key) => {
     if (request.apiKeyValidated) return 1000000;
-    if (request.url.startsWith('/api/v1/')) return 20;
-    if (request.url.startsWith('/api/') || request.url.startsWith('/ai/') || request.url.startsWith('/random/') || request.url.startsWith('/v1/') || request.url.startsWith('/v2/') || request.url.startsWith('/maker/')) return 50;
     return 100;
   },
   keyGenerator: getClientIP,
   skip: (request) => {
     if (request.apiKeyValidated) return true;
-    const skipPaths = ['/api/settings', '/api/preview-image', '/assets/', '/src/images/', '/page/sponsor.json', '/src/', '/support'];
+    const skipPaths = ['/api/settings', '/api/preview-image', '/api/sponsor.json', '/api/health'];
     return skipPaths.some(p => request.url.startsWith(p));
   },
   errorResponseBuilder: (request, context) => ({
     statusCode: 429,
+    status: false,
     error: 'RATE_LIMIT_EXCEEDED',
     message: 'Too many requests from your IP. Please use an API key for higher limits.'
   })
@@ -248,43 +191,48 @@ await app.register(rateLimit, {
 
 await app.register(fastifyStatic, {
   root: path.join(__dirname, "src", "images"),
-  prefix: "/src/images",
+  prefix: "/api/images",
   decorateReply: false 
 });
 
 await app.register(fastifyStatic, {
   root: path.join(__dirname, "publik"),
-  prefix: "/publik",
+  prefix: "/api/publik",
   decorateReply: false 
 });
 
-app.get('/src/*', async (request, reply) => {
-  if (request.url.match(/\.(jpg|jpeg|png|gif|svg|ico)$/i)) {
-    const filePath = path.join(__dirname, request.url);
-    if (fs.existsSync(filePath)) {
-      return reply.send(fs.readFileSync(filePath));
+app.get("/api", async (request, reply) => {
+  const settings = getSettings();
+  return reply.code(200).send({
+    status: true,
+    message: "Welcome to Asuma API",
+    creator: settings?.apiSettings?.creator || "DitssCloud",
+    version: settings?.version || "1.1.0",
+    endpoints: {
+      settings: "/api/settings",
+      notifications: "/api/notifications",
+      sponsor: "/api/sponsor.json",
+      preview: "/api/preview-image",
+      health: "/api/health",
+      ip: "/api/ip",
+      docs: "/api/docs",
+      support: "/api/support"
     }
-  }
-  return reply.code(403).type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "status", "4xx", "403.html")));
+  });
 });
 
-app.get("/u", async (request, reply) => reply.redirect("/"));
+app.get("/api/u", async (request, reply) => reply.redirect("/api"));
 
-app.get("/assets/styles.css", async (request, reply) => {
-  return reply.type("text/css").header("Cache-Control", "public, max-age=604800").send(fs.readFileSync(path.join(__dirname, "page", "docs", "styles.css")));
-});
-
-app.get("/assets/script.js", async (request, reply) => {
-  return reply.type("application/javascript").header("Cache-Control", "public, max-age=604800").send(fs.readFileSync(path.join(__dirname, "page", "docs", "script.js")));
-});
-
-app.get("/page/sponsor.json", async (request, reply) => {
-  try {
-    const sponsorData = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "sponsor.json"), "utf-8"));
-    return reply.send(sponsorData);
-  } catch (error) {
-    return reply.code(500).send({ error: "Failed to load sponsor data" });
-  }
+app.get("/api/ip", async (request, reply) => {
+  return reply.code(200).send({
+    status: true,
+    data: {
+      ip: request.ip,
+      country: request.headers["x-vercel-ip-country"] || null,
+      city: request.headers["x-vercel-ip-city"] || null,
+      region: request.headers["x-vercel-ip-region"] || null
+    }
+  });
 });
 
 app.get("/api/preview-image", async (request, reply) => {
@@ -298,40 +246,90 @@ app.get("/api/preview-image", async (request, reply) => {
       return reply.type(img.type).header("Cache-Control", "public, max-age=86400").send(fs.readFileSync(img.path));
     }
   }
-  return reply.code(404).send({ error: "Preview image not found" });
+  return reply.code(404).send({ status: false, error: "Preview image not found" });
 });
 
 app.get("/api/settings", async (request, reply) => {
   try {
     const settings = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "settings.json"), "utf-8"));
-    return reply.send(settings);
+    return reply.code(200).send({ status: true, data: settings });
   } catch (error) {
-    return reply.code(500).type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "status", "5xx", "500.html")));
+    return reply.code(500).send({ status: false, error: "Failed to load settings" });
   }
 });
 
 app.get("/api/notifications", async (request, reply) => {
   try {
     const notifications = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "notifications.json"), "utf-8"));
-    return reply.send(notifications);
+    return reply.code(200).send({ status: true, data: notifications });
   } catch (error) {
-    return reply.code(500).type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "status", "5xx", "500.html")));
+    return reply.code(500).send({ status: false, error: "Failed to load notifications" });
   }
 });
 
-app.get("/support", async (request, reply) => {
-  return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "support.html")));
+app.get("/api/sponsor.json", async (request, reply) => {
+  try {
+    const sponsorData = JSON.parse(fs.readFileSync(path.join(__dirname, "src", "sponsor.json"), "utf-8"));
+    return reply.code(200).send({ status: true, data: sponsorData });
+  } catch (error) {
+    return reply.code(500).send({ status: false, error: "Failed to load sponsor data" });
+  }
 });
 
-app.addHook('onRequest', async (request, reply) => {
-  const blockedPaths = ["/page/", "/src/settings.json", "/src/notifications.json", "/page/styles.css", "/page/script.js"];
-  const isBlocked = blockedPaths.some((blocked) => {
-    if (blocked.endsWith("/")) return request.url.startsWith(blocked);
-    return request.url === blocked;
+app.get("/api/support", async (request, reply) => {
+  return reply.code(200).send({
+    status: true,
+    data: {
+      contact: {
+        whatsapp: "https://wa.me/6281234567890",
+        email: "support@asuma.my.id",
+        telegram: "https://t.me/asuma_support"
+      },
+      documentation: "https://api.asuma.my.id/api/docs",
+      business: {
+        name: "Ditss Store",
+        website: "https://asuma.my.id"
+      }
+    }
   });
-  if (isBlocked) {
-    return reply.code(403).type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "status", "4xx", "403.html")));
-  }
+});
+
+app.get("/api/docs", async (request, reply) => {
+  const settings = getSettings();
+  return reply.code(200).send({
+    status: true,
+    data: {
+      title: "Asuma API Documentation",
+      version: settings?.version || "1.1.0",
+      base_url: "https://api.asuma.my.id",
+      authentication: {
+        type: "API Key",
+        parameter: "apikey",
+        location: "query",
+        required: settings?.apiSettings?.requireApikey || false
+      },
+      endpoints: settings?.categories || [],
+      rate_limit: {
+        default: "100 requests/minute",
+        premium: "Unlimited"
+      }
+    }
+  });
+});
+
+app.get("/api/health", async (request, reply) => {
+  const settings = getSettings();
+  return reply.code(200).send({
+    status: true,
+    data: {
+      service: "Asuma API",
+      version: settings?.version || "1.1.0",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      maintenance: settings?.maintenance?.enabled || false,
+      node_version: process.version
+    }
+  });
 });
 
 let settingsCache = null;
@@ -356,11 +354,11 @@ app.addHook('onSend', async (request, reply, payload) => {
   if (reply.getHeader('content-type')?.includes('application/json')) {
     try {
       let data = typeof payload === 'string' ? JSON.parse(payload) : payload;
-      if (data && typeof data === "object") {
+      if (data && typeof data === "object" && !data.status) {
         const settings = getSettings();
         data = {
-          status: data.status ?? true,
-          creator: settings?.apiSettings?.creator || "RaolByte",
+          status: true,
+          creator: settings?.apiSettings?.creator || "DitssCloud",
           ...data,
         };
         return JSON.stringify(data);
@@ -372,19 +370,16 @@ app.addHook('onSend', async (request, reply, payload) => {
 
 app.addHook('onRequest', async (request, reply) => {
   const settings = getSettings();
-  const skipPaths = ["/api/settings", "/assets/", "/src/", "/api/preview-image", "/src/sponsor.json", "/support"];
+  const skipPaths = ["/api/settings", "/api/preview-image", "/api/sponsor.json", "/api/health", "/api/support"];
   const shouldSkip = skipPaths.some((p) => request.url.startsWith(p));
   if (settings?.maintenance?.enabled && !shouldSkip) {
-    if (request.url.startsWith("/api/") || request.url.startsWith("/ai/")) {
-      return reply.code(503).send({
-        status: false,
-        error: "Service temporarily unavailable",
-        message: "The API is currently under maintenance. Please try again later.",
-        maintenance: true,
-        creator: settings.apiSettings?.creator || "VGX Team",
-      });
-    }
-    return reply.code(503).type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "status", "maintenance", "maintenance.html")));
+    return reply.code(503).send({
+      status: false,
+      error: "Service temporarily unavailable",
+      message: settings?.maintenance?.message || "The API is currently under maintenance. Please try again later.",
+      maintenance: true,
+      creator: settings.apiSettings?.creator || "DitssCloud",
+    });
   }
 });
 
@@ -419,76 +414,6 @@ const loadApiRoutes = async () => {
 
 await loadApiRoutes();
 
-app.get("/", async (request, reply) => {
-  return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "index.html")));
-});
-
-app.get("/e", async (request, reply) => {
-  const vercelId = request.headers["x-vercel-id"] || request.headers["x-request-id"] || "sin1::unknown";
-  reply.type("text/html; charset=utf-8").header("Cache-Control", "no-store");
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deployment Paused</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: #000;
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-    }
-    .message {
-      font-size: 1.25rem;
-      font-weight: 400;
-      opacity: 0.95;
-      margin-bottom: 3rem;
-    }
-    .id {
-      position: fixed;
-      bottom: 16px;
-      width: 100%;
-      font-size: 0.75rem;
-      color: #777;
-      letter-spacing: 0.2px;
-    }
-  </style>
-</head>
-<body>
-  <div class="message">This deployment is temporarily paused</div>
-  <div class="id">${vercelId}</div>
-</body>
-</html>`;
-});
-
-app.get("/v1/ip", async (request, reply) => {
-  return {
-    ip: request.ip,
-    country: request.headers["x-vercel-ip-country"],
-    city: request.headers["x-vercel-ip-city"],
-    region: request.headers["x-vercel-ip-region"]
-  };
-});
-
-app.get("/atmin/dasboard", async (request, reply) => {
-  return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "dasboard.html")));
-});
-
-app.get("/assets/dashboard.css", async (request, reply) => {
-  return reply.type("text/css").header("Cache-Control", "public, max-age=604800").send(fs.readFileSync(path.join(__dirname, "page", "dashboard.css")));
-});
-
-app.get("/assets/dashboard.js", async (request, reply) => {
-  return reply.type("application/javascript").header("Cache-Control", "public, max-age=604800").send(fs.readFileSync(path.join(__dirname, "page", "dashboard.js")));
-});
-
 const wss = new WebSocketServer({ noServer: true });
 wss.on("connection", (ws) => {
   const sendStats = () => {
@@ -508,17 +433,13 @@ wss.on("connection", (ws) => {
 });
 
 app.server.on("upgrade", (req, socket, head) => {
-  if (req.url === "/admin/stats/ws") {
+  if (req.url === "/api/admin/stats/ws") {
     wss.handleUpgrade(req, socket, head, (ws) => {
       wss.emit("connection", ws, req);
     });
   } else {
     socket.destroy();
   }
-});
-
-app.get("/docs/", async (request, reply) => {
-  return reply.type('text/html').send(fs.readFileSync(path.join(__dirname, "page", "docs", "index.html")));
 });
 
 console.log(chalk.bgHex("#90EE90").hex("#333").bold(" Load Complete! "));
@@ -537,20 +458,20 @@ app.setErrorHandler((error, request, reply) => {
   };
   console.error(JSON.stringify({ level: 'ERROR', ...errorLog }));
   const status = error.statusCode || 500;
-  const htmlPaths = {
-    400: "page/status/4xx/400.html",
-    401: "page/status/4xx/401.html",
-    403: "page/status/4xx/403.html",
-    404: "page/status/4xx/404.html",
-    429: "page/status/4xx/429.html",
-    500: "page/status/5xx/500.html"
-  };
-  const htmlPath = htmlPaths[status] || htmlPaths[500];
-  const fullPath = path.join(__dirname, htmlPath);
-  if (fs.existsSync(fullPath)) {
-    return reply.code(status).type('text/html').send(fs.readFileSync(fullPath));
-  }
-  return reply.code(status).send({ error: error.message });
+  return reply.code(status).send({
+    status: false,
+    error: error.message || "Internal Server Error",
+    statusCode: status
+  });
+});
+
+app.setNotFoundHandler((request, reply) => {
+  return reply.code(404).send({
+    status: false,
+    error: "Endpoint not found",
+    message: `The endpoint ${request.url} does not exist`,
+    statusCode: 404
+  });
 });
 
 const startApplication = async () => {
