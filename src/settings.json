@@ -1,0 +1,45 @@
+{
+  "name": "Asuma API",
+  "version": "1.1.0",
+  "description": "Simple and easy to use API documentation.",
+  "maintenance": {
+    "enabled": false,
+    "message": "Sedang menambahkan fitur baru dan mengoptimalkan performa API."
+  },
+  "bannerImage": "/src/images/banner.jpg",
+  "previewImage": "/src/images/preview.png",
+  "header": {
+    "status": "Online"
+  },
+  "apiSettings": {
+    "creator": "DitssCloud",
+    "requireApikey": false,
+    "apikey": {
+      "demo": {
+        "rateLimit": "5000/day",
+        "enabled": true,
+        "category": "free",
+        "name": "Demo Key"
+      },
+      "admin": {
+        "rateLimit": "unlimited",
+        "enabled": true,
+        "category": "admin",
+        "name": "Admin Key"
+      },
+      "ditss": {
+        "rateLimit": "unlimited",
+        "enabled": true,
+        "category": "premium",
+        "name": "Ditss Key"
+      },
+      "Raol": {
+        "rateLimit": "unlimited",
+        "enabled": true,
+        "category": "premium",
+        "name": "Raol Key"
+      }
+    }
+  },
+  "categories": []
+}
