@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Tidak Ditemukan - Asuma.my.id</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .error-icon {
+            font-size: 80px;
+            color: #f04747;
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.3s, background 0.3s;
+            margin-bottom: 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: #764ba2;
+        }
+
+        .search-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-section p {
+            margin-bottom: 15px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-form input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .search-form input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-form button {
+            padding: 12px 20px;
+            background: #667eea;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-form button:hover {
+            background: #764ba2;
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-card">
+            <i class="fas fa-user-slash error-icon"></i>
+            <h1 class="error-title">404 - User Tidak Ditemukan</h1>
+            
+            <% if (nickname) { %>
+                <p class="error-message">
+                    Maaf, user dengan nickname <strong>"<%= nickname %>"</strong> tidak ditemukan di database kami.
+                </p>
+            <% } else { %>
+                <p class="error-message">
+                    <%= message || 'Halaman yang Anda cari tidak ditemukan.' %>
+                </p>
+            <% } %>
+
+            <a href="/" class="btn">
+                <i class="fas fa-home"></i> Kembali ke Beranda
+            </a>
+
+            <div class="search-section">
+                <p>Coba cari user lain:</p>
+                <form action="/api/user/search" method="GET" class="search-form" onsubmit="event.preventDefault(); window.location.href='/u/' + this.q.value">
+                    <input type="text" name="q" placeholder="Masukkan nickname..." value="<%= nickname || '' %>">
+                    <button type="submit"><i class="fas fa-search"></i> Cari</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
