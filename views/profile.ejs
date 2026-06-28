@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title><%= user.profile.name %> (@<%= user.profile.nickname %>) - Profile Asuma.my.id | Level <%= user.account.level %> • Rank #<%= user.account.rank %></title>
+    <meta name="title" content="<%= user.profile.name %> (@<%= user.profile.nickname %>) - Profile Asuma.my.id">
+    <meta name="description" content="👤 Profile <%= user.profile.name %> di Asuma.my.id. Level <%= user.account.level %> • Rank #<%= user.account.rank %> • <%= user.games.stats.totalPlayed > 0 ? user.games.stats.totalPlayed + ' games played' : 'Member baru' %> • <%= user.social.reputation.points %> reputasi. Cek profil lengkapnya!">
+    <meta name="keywords" content="Asuma.my.id, profile, <%= user.profile.name %>, <%= user.profile.nickname %>, level <%= user.account.level %>, rank #<%= user.account.rank %>, game stats, economy, rpg, <%= user.social.guild.name || 'no guild' %>">
+    <meta name="author" content="Asuma.my.id">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Indonesian">
+    <meta name="revisit-after" content="1 days">
+    
+    <meta property="og:type" content="profile">
+    <meta property="og:url" content="https://asuma.my.id/u/<%= user.profile.nickname %>">
+    <meta property="og:title" content="<%= user.profile.name %> (@<%= user.profile.nickname %>) - Asuma.my.id">
+    <meta property="og:description" content="<%= user.profile.bio && user.profile.bio.length > 150 ? user.profile.bio.substring(0, 150) + '...' : user.profile.bio || 'Member Asuma.my.id' %>">
+    <meta property="og:image" content="<%= user.profile.avatar %>">
+    <meta property="og:image:alt" content="Profile picture <%= user.profile.name %>">
+    <meta property="og:site_name" content="Asuma.my.id">
+    <meta property="profile:username" content="<%= user.profile.nickname %>">
+    <% if (user.profile.gender) { %><meta property="profile:gender" content="<%= user.profile.gender === 'Laki-laki' ? 'male' : 'female' %>"><% } %>
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://asuma.my.id/u/<%= user.profile.nickname %>">
+    <meta name="twitter:title" content="<%= user.profile.name %> (@<%= user.profile.nickname %>)">
+    <meta name="twitter:description" content="<%= user.profile.bio && user.profile.bio.length > 150 ? user.profile.bio.substring(0, 150) + '...' : user.profile.bio || 'Member Asuma.my.id' %>">
+    <meta name="twitter:image" content="<%= user.profile.avatar %>">
+    
+    <link rel="canonical" href="https://asuma.my.id/u/<%= user.profile.nickname %>">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #fff;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transform: translateY(0);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shine 10s infinite linear;
+            pointer-events: none;
+        }
+
+        @keyframes shine {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .profile-header:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            margin-top: -50px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            transition: transform 0.3s;
+        }
+
+        .avatar-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid transparent;
+            background: linear-gradient(45deg, #667eea, #764ba2) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .badge-container {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .vip-badge, .premium-badge {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 10px 25px rgba(255,215,0,0.5);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 5px 15px rgba(255,215,0,0.3);
+            }
+        }
+
+        .vip-badge {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            color: #000;
+        }
+
+        .premium-badge {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            animation-delay: 0.5s;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: linear-gradient(135deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .afk-badge {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            animation: pulse 2s infinite;
+            -webkit-text-fill-color: white;
+        }
+
+        .user-nickname {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .user-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .user-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .user-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .user-meta span:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.2);
+        }
+
+        .user-meta i {
+            color: #667eea;
+        }
+
+        .quick-stats {
+            display: flex;
+            gap: 30px;
+            padding: 15px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 15px 25px;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-item {
+            text-align: center;
+            position: relative;
+            min-width: 80px;
+        }
+
+        .stat-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 30px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .profile-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .card h3 i {
+            font-size: 24px;
+            background: rgba(102, 126, 234, 0.2);
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .bio-text {
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.9);
+            white-space: pre-wrap;
+            font-size: 15px;
+        }
+
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+            position: relative;
+            animation: gradientMove 2s infinite linear;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 200% 0%;
+            }
+        }
+
+        .badges-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.3s;
+            cursor: default;
+        }
+
+        .badge:hover {
+            transform: scale(1.1);
+        }
+
+        .economy-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .economy-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .economy-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #667eea;
+        }
+
+        .economy-item i {
+            font-size: 28px;
+            color: #ffd700;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));
+        }
+
+        .economy-value {
+            display: block;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .economy-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .game-stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px 10px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .game-stat:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .game-stat .number {
+            display: block;
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .game-stat .label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .highscores {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 20px;
+        }
+
+        .highscores h4 {
+            margin-bottom: 15px;
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+        }
+
+        .highscore-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .highscore-item:hover {
+            transform: translateX(5px);
+            background: rgba(255,255,255,0.05);
+            padding-left: 10px;
+            padding-right: 10px;
+            border-radius: 5px;
+        }
+
+        .highscore-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .info-row:hover {
+            transform: translateX(5px);
+        }
+
+        .info-label {
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            background: rgba(102, 126, 234, 0.2);
+            padding: 3px 10px;
+            border-radius: 15px;
+        }
+
+        .afk-card {
+            background: rgba(243, 156, 18, 0.15);
+            border-left: 4px solid #f39c12;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .afk-card::after {
+            content: '⏰';
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 100px;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+
+        .afk-reason {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            font-style: italic;
+            border-left: 3px solid #f39c12;
+        }
+
+        .afk-since {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .referral-code {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            letter-spacing: 3px;
+            border: 2px dashed #667eea;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .referral-code:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.5), rgba(118, 75, 162, 0.5));
+            transform: scale(1.02);
+        }
+
+        .referral-code::before {
+            content: '📋 Klik untuk copy';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .referral-code:hover::before {
+            opacity: 1;
+        }
+
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: floatIn 0.5s ease;
+        }
+
+        @keyframes floatIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-icon {
+            font-size: 100px;
+            color: #f04747;
+            margin-bottom: 20px;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-10px);
+            }
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .error-title {
+            font-size: 48px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .error-message {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .search-form {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-form input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-form input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .search-form input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-tooltip]:before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 5px 10px;
+            background: #333;
+            color: white;
+            font-size: 12px;
+            border-radius: 5px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        [data-tooltip]:hover:before {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            border: 0;
+        }
+        
+        .breadcrumb {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .breadcrumb a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            color: #fff;
+        }
+        
+        .breadcrumb i {
+            margin: 0 10px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        @media (max-width: 768px) {
+            .profile-content {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .avatar-wrapper {
+                margin-top: 0;
+            }
+
+            .quick-stats {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .stat-item:not(:last-child)::after {
+                display: none;
+            }
+
+            .user-meta {
+                justify-content: center;
+            }
+
+            .economy-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .game-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .card {
+                break-inside: avoid;
+                border: 1px solid #ccc;
+                background: white;
+                color: black;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="/">🏠 Home</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="/members">👥 Members</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>@<%= user.profile.nickname %></span>
+        </nav>
+        
+        <header class="profile-header" data-aos="fade-down">
+            <div class="avatar-wrapper">
+                <img src="<%= user.profile.avatar %>" 
+                     alt="Foto profil <%= user.profile.name %>" 
+                     class="avatar" 
+                     onerror="this.src='/images/default-avatar.png'"
+                     width="150"
+                     height="150">
+                <div class="badge-container">
+                    <% if (user.subscription.isVip) { %>
+                        <span class="vip-badge" title="VIP Member"><i class="fas fa-crown"></i></span>
+                    <% } %>
+                    <% if (user.subscription.isPremium) { %>
+                        <span class="premium-badge" title="Premium Member"><i class="fas fa-star"></i></span>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="user-info">
+                <h1 class="user-name">
+                    <%= user.profile.name %>
+                    <% if (user.afk.isAfk) { %>
+                        <span class="afk-badge" data-tooltip="Sedang tidak aktif"><i class="fas fa-clock"></i> AFK</span>
+                    <% } %>
+                </h1>
+                <div class="user-nickname">
+                    <i class="fas fa-at"></i> @<%= user.profile.nickname %>
+                </div>
+                <div class="user-title" style="color: <%= user.account.titleColor %>">
+                    <i class="fas fa-tag"></i> <%= user.account.title %>
+                </div>
+                <div class="user-meta">
+                    <% if (user.profile.location.city || user.profile.location.country) { %>
+                        <span data-tooltip="Lokasi">
+                            <i class="fas fa-map-marker-alt"></i> 
+                            <%= user.profile.location.city %><%= user.profile.location.city && user.profile.location.country ? ', ' : '' %><%= user.profile.location.country %>
+                        </span>
+                    <% } %>
+                    <% if (user.profile.age) { %>
+                        <span data-tooltip="Umur"><i class="fas fa-birthday-cake"></i> <%= user.profile.age %> tahun</span>
+                    <% } %>
+                    <% if (user.profile.gender) { %>
+                        <span data-tooltip="Jenis Kelamin"><i class="fas fa-<%= user.profile.gender === 'Laki-laki' ? 'mars' : 'venus' %>"></i> <%= user.profile.gender %></span>
+                    <% } %>
+                    <span data-tooltip="Tanggal Bergabung"><i class="fas fa-calendar-alt"></i> Bergabung: <%= user.account.registeredAt %></span>
+                </div>
+            </div>
+
+            <div class="quick-stats">
+                <div class="stat-item" data-tooltip="Level saat ini">
+                    <div class="stat-value"><%= user.account.level %></div>
+                    <div class="stat-label">Level</div>
+                </div>
+                <div class="stat-item" data-tooltip="Peringkat global">
+                    <div class="stat-value">#<%= user.account.rank %></div>
+                    <div class="stat-label">Rank</div>
+                </div>
+                <div class="stat-item" data-tooltip="Jumlah dilihat">
+                    <div class="stat-value"><%= formatNumber(user.stats.profileViews) %></div>
+                    <div class="stat-label">Dilihat</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="profile-content">
+            <div class="left-column">
+                <section class="card" data-aos="fade-right">
+                    <h3><i class="fas fa-quote-right"></i> Bio</h3>
+                    <p class="bio-text"><%= user.profile.bio %></p>
+                </section>
+
+                <% if (user.account.badges.length > 0) { %>
+                <section class="card" data-aos="fade-right" data-aos-delay="100">
+                    <h3><i class="fas fa-medal"></i> Badges & Penghargaan</h3>
+                    <div class="badges-container">
+                        <% user.account.badges.forEach(badge => { %>
+                            <span class="badge" data-tooltip="<%= badge %>"><i class="fas fa-certificate"></i> <%= badge %></span>
+                        <% }); %>
+                    </div>
+                </section>
+                <% } %>
+
+                <section class="card" data-aos="fade-right" data-aos-delay="200">
+                    <h3><i class="fas fa-users"></i> Informasi Sosial</h3>
+                    <div class="info-list">
+                        <% if (user.social.guild.name) { %>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-shield-alt"></i> Guild</span>
+                            <span class="info-value"><%= user.social.guild.name %> <% if (user.social.guild.role) { %>(<%= user.social.guild.role %>)<% } %></span>
+                        </div>
+                        <% } %>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-heart"></i> Reputasi</span>
+                            <span class="info-value"><%= formatNumber(user.social.reputation.points) %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-balance-scale"></i> Karma</span>
+                            <span class="info-value"><%= user.social.karma %></span>
+                        </div>
+                        <% if (user.social.marriage.partner) { %>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-ring"></i> Menikah dengan</span>
+                            <span class="info-value">@<%= user.social.marriage.partner %></span>
+                        </div>
+                        <% } %>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-user-friends"></i> Teman</span>
+                            <span class="info-value"><%= user.social.friendsCount %></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" data-aos="fade-right" data-aos-delay="300">
+                    <h3><i class="fas fa-address-card"></i> Kontak</h3>
+                    <div class="info-list">
+                        <% if (user.profile.contact.phoneNumber) { %>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-phone"></i> Telepon</span>
+                            <span class="info-value">
+                                <%= user.profile.contact.phoneNumber %>
+                                <% if (user.profile.contact.isPhoneVerified) { %>
+                                    <i class="fas fa-check-circle" style="color: #43b581;" title="Terverifikasi"></i>
+                                <% } %>
+                            </span>
+                        </div>
+                        <% } %>
+                        <% if (user.profile.contact.email) { %>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-envelope"></i> Email</span>
+                            <span class="info-value">
+                                <%= user.profile.contact.email %>
+                                <% if (user.profile.contact.isEmailVerified) { %>
+                                    <i class="fas fa-check-circle" style="color: #43b581;" title="Terverifikasi"></i>
+                                <% } %>
+                            </span>
+                        </div>
+                        <% } %>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-globe"></i> Zona Waktu</span>
+                            <span class="info-value"><%= user.profile.location.timezone %></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" data-aos="fade-right" data-aos-delay="350">
+                    <h3><i class="fas fa-calendar-check"></i> Daily Rewards</h3>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-fire"></i> Streak Harian</span>
+                            <span class="info-value"><%= user.dailyRewards.streak %> hari</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-trophy"></i> Max Streak</span>
+                            <span class="info-value"><%= user.dailyRewards.maxStreak %> hari</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-clock"></i> Last Claim</span>
+                            <span class="info-value"><%= user.dailyRewards.lastClaim ? formatDate(user.dailyRewards.lastClaim) : 'Belum pernah' %></span>
+                        </div>
+                    </div>
+                </section>
+
+                <% if (user.afk.isAfk) { %>
+                <section class="card afk-card" data-aos="fade-right" data-aos-delay="400">
+                    <h3><i class="fas fa-clock"></i> Sedang AFK</h3>
+                    <div class="afk-reason">
+                        <strong>Alasan:</strong> <%= user.afk.reason %>
+                    </div>
+                    <div class="afk-since">
+                        <i class="fas fa-hourglass-half"></i> Sejak <%= user.afk.sinceFormatted %>
+                    </div>
+                    <div class="afk-since">
+                        <i class="fas fa-envelope"></i> Pesan terlewat: <%= user.afk.messagesMissed %>
+                    </div>
+                </section>
+                <% } %>
+            </div>
+
+            <div class="right-column">
+                <section class="card" data-aos="fade-left">
+                    <h3><i class="fas fa-chart-line"></i> Progress Level</h3>
+                    <div class="level-info">
+                        <span>Level <%= user.account.level %></span>
+                        <span><%= formatNumber(user.account.exp) %> / <%= formatNumber(user.account.nextLevelExp) %> EXP</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: <%= user.account.levelProgress %>%" role="progressbar" aria-valuenow="<%= user.account.levelProgress %>" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <% if (user.account.rank > 0) { %>
+                    <div class="level-info" style="margin-top: 10px;">
+                        <span><i class="fas fa-crown" style="color: #ffd700;"></i> Peringkat Global</span>
+                        <span>#<%= user.account.rank %></span>
+                    </div>
+                    <% } %>
+                </section>
+
+                <section class="card" data-aos="fade-left" data-aos-delay="100">
+                    <h3><i class="fas fa-coins"></i> Ekonomi</h3>
+                    <div class="economy-grid">
+                        <div class="economy-item" data-tooltip="Uang tunai">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span class="economy-value"><%= formatNumber(user.economy.currencies.money) %></span>
+                            <span class="economy-label">Uang</span>
+                        </div>
+                        <div class="economy-item" data-tooltip="Tabungan bank">
+                            <i class="fas fa-piggy-bank"></i>
+                            <span class="economy-value"><%= formatNumber(user.economy.currencies.bank) %></span>
+                            <span class="economy-label">Bank</span>
+                        </div>
+                        <div class="economy-item" data-tooltip="Kristal premium">
+                            <i class="fas fa-gem"></i>
+                            <span class="economy-value"><%= formatNumber(user.economy.currencies.crystals) %></span>
+                            <span class="economy-label">Kristal</span>
+                        </div>
+                        <div class="economy-item" data-tooltip="Permata langka">
+                            <i class="fas fa-star"></i>
+                            <span class="economy-value"><%= formatNumber(user.economy.currencies.gems) %></span>
+                            <span class="economy-label">Gems</span>
+                        </div>
+                        <div class="economy-item" data-tooltip="Tiket spin">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span class="economy-value"><%= formatNumber(user.economy.currencies.tickets.spin) %></span>
+                            <span class="economy-label">Spin</span>
+                        </div>
+                        <div class="economy-item" data-tooltip="Total pendapatan">
+                            <i class="fas fa-chart-line"></i>
+                            <span class="economy-value"><%= formatNumber(user.economy.totalEarned) %></span>
+                            <span class="economy-label">Total Earn</span>
+                        </div>
+                    </div>
+                    <% if (user.economy.debt > 0) { %>
+                    <div class="info-row" style="margin-top: 10px; border-color: #f04747;">
+                        <span class="info-label"><i class="fas fa-exclamation-triangle" style="color: #f04747;"></i> Hutang</span>
+                        <span class="info-value" style="color: #f04747;">-<%= formatNumber(user.economy.debt) %></span>
+                    </div>
+                    <% } %>
+                </section>
+
+                <section class="card" data-aos="fade-left" data-aos-delay="200">
+                    <h3><i class="fas fa-gamepad"></i> Statistik Game</h3>
+                    <div class="game-stats-grid">
+                        <div class="game-stat" data-tooltip="Total bermain">
+                            <span class="number"><%= formatNumber(user.games.stats.totalPlayed) %></span>
+                            <span class="label">Total Main</span>
+                        </div>
+                        <div class="game-stat" data-tooltip="Total menang">
+                            <span class="number"><%= formatNumber(user.games.stats.totalWins) %></span>
+                            <span class="label">Menang</span>
+                        </div>
+                        <div class="game-stat" data-tooltip="Persentase kemenangan">
+                            <span class="number"><%= user.games.stats.winRate %>%</span>
+                            <span class="label">Win Rate</span>
+                        </div>
+                    </div>
+
+                    <div class="highscores">
+                        <h4><i class="fas fa-trophy" style="color: #ffd700;"></i> High Scores</h4>
+                        
+                        <% if (user.games.tebakkata.highScore > 0) { %>
+                        <div class="highscore-item">
+                            <span><i class="fas fa-keyboard"></i> Tebak Kata</span>
+                            <span><strong><%= formatNumber(user.games.tebakkata.highScore) %></strong></span>
+                        </div>
+                        <% } %>
+                        
+                        <% if (user.games.tekateki.highScore > 0) { %>
+                        <div class="highscore-item">
+                            <span><i class="fas fa-puzzle-piece"></i> Teka Teki</span>
+                            <span>
+                                <strong><%= formatNumber(user.games.tekateki.highScore) %></strong>
+                                <% if (user.games.tekateki.leaderboardRank > 0) { %>
+                                    <small style="color: #ffd700;">(#<%= user.games.tekateki.leaderboardRank %>)</small>
+                                <% } %>
+                                <% if (user.games.tekateki.isTop1) { %>
+                                    <i class="fas fa-crown" style="color: #ffd700; margin-left: 5px;" title="Rank 1"></i>
+                                <% } %>
+                            </span>
+                        </div>
+                        <% } %>
+                        
+                        <% if (user.games.asahotak.highScore > 0) { %>
+                        <div class="highscore-item">
+                            <span><i class="fas fa-brain"></i> Asah Otak</span>
+                            <span>
+                                <strong><%= formatNumber(user.games.asahotak.highScore) %></strong>
+                                <% if (user.games.asahotak.leaderboardRank > 0) { %>
+                                    <small style="color: #ffd700;">(#<%= user.games.asahotak.leaderboardRank %>)</small>
+                                <% } %>
+                            </span>
+                        </div>
+                        <% } %>
+                        
+                        <% if (user.games.caklontong.highScore > 0) { %>
+                        <div class="highscore-item">
+                            <span><i class="fas fa-comment"></i> Cak Lontong</span>
+                            <span>
+                                <strong><%= formatNumber(user.games.caklontong.highScore) %></strong>
+                                <% if (user.games.caklontong.leaderboardRank > 0) { %>
+                                    <small style="color: #ffd700;">(#<%= user.games.caklontong.leaderboardRank %>)</small>
+                                <% } %>
+                            </span>
+                        </div>
+                        <% } %>
+                        
+                        <% if (user.games.susunKata.highScore > 0) { %>
+                        <div class="highscore-item">
+                            <span><i class="fas fa-sort-alpha-down"></i> Susun Kata</span>
+                            <span><strong><%= formatNumber(user.games.susunKata.highScore) %></strong></span>
+                        </div>
+                        <% } %>
+                        
+                        <% if (user.games.tebakGambar.highScore > 0) { %>
+                        <div class="highscore-item">
+                            <span><i class="fas fa-image"></i> Tebak Gambar</span>
+                            <span><strong><%= formatNumber(user.games.tebakGambar.highScore) %></strong></span>
+                        </div>
+                        <% } %>
+                        
+                        <% if (user.games.slotMachine.totalSpins > 0) { %>
+                        <div class="highscore-item" style="border-top: 1px dashed rgba(255,255,255,0.2); margin-top: 10px; padding-top: 10px;">
+                            <span><i class="fas fa-slots-h"></i> Slot Machine</span>
+                            <span><strong><%= user.games.slotMachine.totalSpins %> spins</strong></span>
+                        </div>
+                        <div class="highscore-item">
+                            <span><i class="fas fa-trophy"></i> Biggest Win</span>
+                            <span><strong><%= formatNumber(user.games.slotMachine.biggestWin) %></strong></span>
+                        </div>
+                        <% } %>
+                    </div>
+                </section>
+
+                <% if (user.games.rpg.character) { %>
+                <section class="card" data-aos="fade-left" data-aos-delay="250">
+                    <h3><i class="fas fa-dragon"></i> RPG Character</h3>
+                    <div class="economy-grid" style="grid-template-columns: repeat(2,1fr);">
+                        <div class="economy-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span class="economy-value"><%= user.games.rpg.character.class %></span>
+                            <span class="economy-label">Class</span>
+                        </div>
+                        <div class="economy-item">
+                            <i class="fas fa-heart" style="color: #ff6b6b;"></i>
+                            <span class="economy-value"><%= user.games.rpg.character.hp %></span>
+                            <span class="economy-label">HP</span>
+                        </div>
+                        <div class="economy-item">
+                            <i class="fas fa-bolt" style="color: #f39c12;"></i>
+                            <span class="economy-value"><%= user.games.rpg.character.mp %></span>
+                            <span class="economy-label">MP</span>
+                        </div>
+                        <div class="economy-item">
+                            <i class="fas fa-fist-raised"></i>
+                            <span class="economy-value"><%= user.games.rpg.character.strength %></span>
+                            <span class="economy-label">STR</span>
+                        </div>
+                    </div>
+                    <div class="info-row" style="margin-top: 10px;">
+                        <span class="info-label"><i class="fas fa-dungeon"></i> Dungeon Floor</span>
+                        <span class="info-value"><%= user.games.rpg.dungeon.currentFloor %> / <%= user.games.rpg.dungeon.highestFloor %></span>
+                    </div>
+                </section>
+                <% } %>
+
+                <% if (user.pets.active) { %>
+                <section class="card" data-aos="fade-left" data-aos-delay="275">
+                    <h3><i class="fas fa-paw"></i> Active Pet</h3>
+                    <div class="economy-grid" style="grid-template-columns: repeat(2,1fr);">
+                        <div class="economy-item">
+                            <i class="fas fa-dog"></i>
+                            <span class="economy-value"><%= user.pets.active.name || 'Pet' %></span>
+                            <span class="economy-label">Nama</span>
+                        </div>
+                        <div class="economy-item">
+                            <i class="fas fa-heart" style="color: #ff6b6b;"></i>
+                            <span class="economy-value"><%= user.pets.active.happiness || 100 %>%</span>
+                            <span class="economy-label">Happy</span>
+                        </div>
+                    </div>
+                </section>
+                <% } %>
+
+                <section class="card" data-aos="fade-left" data-aos-delay="300">
+                    <h3><i class="fas fa-chart-bar"></i> Aktivitas</h3>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-envelope"></i> Pesan terkirim</span>
+                            <span class="info-value"><%= formatNumber(user.stats.messagesSent) %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-terminal"></i> Command digunakan</span>
+                            <span class="info-value"><%= formatNumber(user.stats.commandsUsed) %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-fire"></i> Daily Streak</span>
+                            <span class="info-value"><%= user.stats.dailyStreak %> hari</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-clock"></i> Terakhir aktif</span>
+                            <span class="info-value"><%= user.timestamps.lastActiveFormatted %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-stopwatch"></i> Total Online</span>
+                            <span class="info-value"><%= formatDuration(user.stats.totalOnlineTime) %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-user-plus"></i> Referrals</span>
+                            <span class="info-value"><%= user.stats.referrals %></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" data-aos="fade-left" data-aos-delay="350">
+                    <h3><i class="fas fa-gauge-high"></i> Daily Limits</h3>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-terminal"></i> Commands</span>
+                            <span class="info-value"><%= user.limits.daily.commands.used %> / <%= user.limits.daily.commands.max %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-spinner"></i> Spins</span>
+                            <span class="info-value"><%= user.limits.daily.spins.used %> / <%= user.limits.daily.spins.max %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-dice"></i> Gacha</span>
+                            <span class="info-value"><%= user.limits.daily.gacha.used %> / <%= user.limits.daily.gacha.max %></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" data-aos="fade-left" data-aos-delay="400">
+                    <h3><i class="fas fa-box"></i> Inventory</h3>
+                    <div class="info-list">
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-weight-hanging"></i> Kapasitas</span>
+                            <span class="info-value"><%= user.inventory.count %> / <%= user.inventory.capacity %></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-boxes"></i> Total Items</span>
+                            <span class="info-value"><%= user.inventory.count %></span>
+                        </div>
+                        <% if (user.inventory.equipped.weapon) { %>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-sword"></i> Equipped</span>
+                            <span class="info-value"><%= user.inventory.equipped.weapon %></span>
+                        </div>
+                        <% } %>
+                    </div>
+                </section>
+
+                <% if (user.stats.referralCode) { %>
+                <section class="card" data-aos="fade-left" data-aos-delay="450">
+                    <h3><i class="fas fa-gift"></i> Kode Referral</h3>
+                    <div class="referral-code" onclick="copyReferralCode('<%= user.stats.referralCode %>')" data-tooltip="Klik untuk copy">
+                        <%= user.stats.referralCode %>
+                    </div>
+                    <p style="font-size: 12px; margin-top: 10px; color: rgba(255,255,255,0.5); text-align: center;">
+                        Bagikan kode ini untuk dapatkan bonus!
+                    </p>
+                </section>
+                <% } %>
+            </div>
+        </main>
+        
+        <footer style="text-align: center; margin-top: 40px; padding: 20px; color: rgba(255,255,255,0.5);">
+            <p>© 2024 Asuma.my.id - 
+                <a href="/" style="color: rgba(255,255,255,0.5);">Home</a> • 
+                <a href="/members" style="color: rgba(255,255,255,0.5);">Members</a> • 
+                <a href="/games" style="color: rgba(255,255,255,0.5);">Games</a> • 
+                <a href="/leaderboard" style="color: rgba(255,255,255,0.5);">Leaderboard</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            if (!particlesContainer) return;
+            
+            const particleCount = 30;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 10 + 5;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.opacity = Math.random() * 0.3;
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function copyReferralCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+                    z-index: 9999;
+                    animation: slideUp 0.3s ease;
+                `;
+                toast.textContent = '✅ Kode referral berhasil dicopy!';
+                document.body.appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.style.animation = 'slideDown 0.3s ease';
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            });
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, 20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, 0);
+                }
+            }
+            
+            @keyframes slideDown {
+                from {
+                    opacity: 1;
+                    transform: translate(-50%, 0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translate(-50%, 20px);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        window.addEventListener('load', createParticles);
+    </script>
+</body>
+</html>
