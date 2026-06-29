@@ -3,7 +3,6 @@ import chalk from "chalk";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
-import { createRequire } from "module";
 import dotenv from "dotenv";
 import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
@@ -31,7 +30,6 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const require = createRequire(import.meta.url);
 
 const app = Fastify({ 
   trustProxy: true,
@@ -90,51 +88,6 @@ const getClientIP = (request) => {
          request.ip || 
          'unknown';
 };
-
-const allowedIPs = [
-  "140.213.14.239",
-  "172.70.108.82",
-  "36.69.156.156",
-  "36.69.150.176",
-  "114.10.77.217",
-  "114.10.78.217",
-  "176.118.198.142",
-  "::1"
-];
-
-const personalAgents = [
-  'AsumaBot', 'Firefox', 'Asuma-API-Client', 'HeadlessChrome', 'MyCustomBot', 'ChatGPT-User', 'ClaudeBot', 'DeepSeek', 'Gemini-Bot', 'Copilot', 'PerplexityBot', 'WhatsApp', 'WhatsApp/2.0', 'WhatsApp-Web', 'TelegramBot', 'Telegram-Client', 'DiscordBot', 'Signal-Bot', 'LineBot', 'CloudflareObservatory', 'WeChatBot', 'Googlebot', 'Google', 'Googlebot-Image', 'Googlebot-News', 'Googlebot-Video', 'Googlebot-Mobile', 'Googlebot-Desktop', 'Googlebot-Smartphone', 'Google-InspectionTool', 'Google-PageSpeed', 'Google-Publisher-Plugin', 'Google-Site-Verification', 'Google-Read-Aloud', 'Google-Cloud-Functions', 'Google-AppEngine', 'AdsBot-Google', 'AdsBot-Google-Mobile', 'Mediapartners-Google', 'Google-AMP', 'Google-AMPHTML', 'Google-Translate', 'Google-Web-RedBot', 'Google-Safety', 'APIs-Google', 'Feedfetcher-Google', 'Googlebot-Testing', 'Google-Favicon', 'FacebookBot', 'FacebookExternalHit', 'Facebookcatalog', 'Twitterbot', 'Twitter-Mobile', 'LinkedInBot', 'PinterestBot', 'InstagramBot', 'TikTokBot', 'SnapchatBot', 'Discordbot', 'Slackbot', 'TeamsBot', 'Bingbot', 'BingPreview', 'BingMobile', 'msnbot', 'msnbot-media', 'Yahoo! Slurp', 'Yahoo! Slurp China', 'YandexBot', 'YandexMobileBot', 'YandexImages', 'YandexVideo', 'YandexNews', 'Baiduspider', 'BaiduMobile', 'Baiduspider-image', 'DuckDuckBot', 'DuckDuckGo-Favicons-Bot', 'Sogou web spider', 'Sogou Mobile Spider', 'Sogou News Spider', 'Exabot', 'Exabot-Thumbnails', 'Facebot', 'Applebot', 'Applebot-Mobile', 'AppleNewsBot', 'SeznamBot', 'SeznamBot-Mobile', 'SeznamNewsBot', 'AhrefsBot', 'AhrefsSiteAudit', 'SemrushBot', 'SemrushBot-BA', 'MozBot', 'MozMobileBot', 'MajesticBot', 'Majestic-SEO', 'SEOkicks-Robot', 'Screaming Frog SEO Spider', 'SiteAuditBot', 'GTmetrix', 'PingdomBot', 'PingdomTiers', 'WebPageTest', 'Lighthouse', 'Google-PageSpeed-Insights', 'FeedBurner', 'RSS-Bot', 'FeedlyBot', 'FeedlyBot-Mobile', 'NewsBlur', 'Inoreader', 'TheOldReader', 'Wayback Machine', 'Wayback Save Page', 'Archive.org Bot', 'archive.org_bot', 'InternetArchiveBot', 'IA Archiver', 'Backup-Bot', 'ScreenReader', 'JAWS-Bot', 'NVDA-Bot', 'VoiceOver-Bot', 'ReadAloudBot', 'AlexaBot', 'Amazon-Rekognition', 'GoogleHomeBot', 'Google-Assistant', 'SiriBot', 'CortanaBot', 'BixbyBot', 'YouTubeBot', 'YouTube-Mobile', 'VimeoBot', 'TwitchBot', 'SpotifyBot', 'NetflixBot', 'HuluBot', 'DisneyPlusBot', 'Cloudflare-Bot', 'Cloudflare-Pages', 'Cloudflare-AMP', 'AWS-Lambda', 'AWS-CloudFront', 'AWS-S3', 'AzureBot', 'Azure-Cloud', 'Google-Cloud', 'UptimeBot', 'UptimeRobot', 'PingBot', 'Pingdom', 'StatusCake', 'BetterStack', 'BetterUptime', 'Datadog-Agent', 'NewRelic-Bot', 'NewRelicPinger', 'Dynatrace', 'Site24x7', 'CheckHost', 'Cloudflare-SSL', 'LetEncrypt-Bot', 'Let’s Encrypt', 'HSTS-Bot', 'SecurityScanner', 'WPScan', 'Sucuri', 'SucuriBot', 'Acunetix', 'Netsparker', 'Vercel-bot', 'Vercel-Screenshot', 'Vercel-Favicon', 'Vercel-Edge', 'Vercel-Serverless', 'Vercel-Preview', 'Vercel-Web-Analytics', 'Vercel-Page-Speed'
-];
-
-const crawlers = require('crawler-user-agents');
-const PROTECTION_ENABLED = true;
-const apiPatterns = ['/api/'];
-
-app.addHook('onRequest', async (request, reply) => {
-  if (!PROTECTION_ENABLED) return;
-  const requestPath = request.url;
-  const isApiEndpoint = apiPatterns.some(pattern => requestPath.startsWith(pattern));
-  if (!isApiEndpoint) return;
-  const clientIP = request.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-                   request.headers['x-real-ip'] ||
-                   request.ip || 
-                   request.socket.remoteAddress;
-  const cleanIP = clientIP.replace(/:\d+$/, '');
-  const userAgent = request.headers['user-agent'] || '';
-  if (allowedIPs.includes(cleanIP)) return;
-  const isPersonalAgent = personalAgents.some(agent => 
-    userAgent.toLowerCase().includes(agent.toLowerCase())
-  );
-  if (isPersonalAgent) return;
-  const isCrawler = crawlers.some(crawler => {
-    try {
-      return new RegExp(crawler.pattern, 'i').test(userAgent);
-    } catch (e) {
-      return false;
-    }
-  });
-  reply.code(403).send({ status: false, error: 'Forbidden' });
-});
 
 app.addHook('onRequest', async (request, reply) => {
   request.apiKeyValidated = false;
